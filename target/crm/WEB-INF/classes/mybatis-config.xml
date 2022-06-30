@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE configuration
+        PUBLIC "-//mybatis.org//DTD Config 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-config.dtd">
+<configuration>
+    <settings>
+        <!--mybatis在运行的过程中，需参考这些参数，
+        我们也可通过这些参数，来控制mybatis的运行行为-->
+        <setting name="logImpl" value="STDOUT_LOGGING"/>
+    </settings>
+    <!--别名-->
+    <typeAliases>
+        <package name="com.sun.crm.workbench.pojo"/>
+        <package name="com.sun.crm.settings.pojo"/>
+    </typeAliases>
+
+    <!--通过插件标签，将pageHelper插件加入到mybatis-->
+    <plugins>
+        <plugin interceptor="com.github.pagehelper.PageHelper">
+            <property name="dialect" value="mysql"/>
+        </plugin>
+    </plugins>
+
+
+
+
+</configuration>

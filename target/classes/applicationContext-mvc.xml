@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:p="http://www.springframework.org/schema/p"
+       xmlns:util="http://www.springframework.org/schema/util"
+       xmlns:aop="http://www.springframework.org/schema/aop"
+       xmlns:tx="http://www.springframework.org/schema/tx"
+       xmlns:mvc="http://www.springframework.org/schema/mvc"
+       xsi:schemaLocation="
+http://www.springframework.org/schema/beans
+http://www.springframework.org/schema/beans/spring-beans.xsd
+http://www.springframework.org/schema/context
+http://www.springframework.org/schema/context/spring-context.xsd
+http://www.springframework.org/schema/tx
+http://www.springframework.org/schema/tx/spring-tx.xsd
+http://www.springframework.org/schema/aop
+http://www.springframework.org/schema/aop/spring-aop.xsd
+http://www.springframework.org/schema/mvc
+http://www.springframework.org/schema/mvc/spring-mvc.xsd
+http://www.springframework.org/schema/util
+http://www.springframework.org/schema/util/spring-util.xsd">
+
+    <!-- 开启静态资源访问权限 -->
+    <mvc:default-servlet-handler />
+    <!-- spring mvc 扫描包下的controller -->
+    <context:component-scan base-package="com.sun.crm.web.controller"/>
+    <context:component-scan base-package="com.sun.crm.settings.web.controller"/>
+    <context:component-scan base-package="com.sun.crm.workbench.web.controller"/>
+    <!-- 配置注解驱动 -->
+    <mvc:annotation-driven/>
+    <!-- 配置视图解析器 -->
+    <bean id="viewResolver"
+          class="org.springframework.web.servlet.view.InternalResourceViewResolver">
+        <property name="prefix" value="/WEB-INF/pages/"/><!--前缀-->
+        <property name="suffix" value=".jsp"/><!--后缀-->
+    </bean>
+
+    <!--配置拦截器
+    拦截器的拦截范围地址设置问题：
+    1. 如果要拦截MVC映射地址，则可根据视图解析器方式进行书写
+       例如：settings/**   ##省略了/WEB-INF/pages/，因为MVC有自定义视图解析器！
+    2. 如果当前拦截的是未保护的资源，且不通过MVC即可进行访问的资源，无法按照mvc视图解析器进行书写，需要从根目录进行书写；
+       例如：/image/**
+
+    思路总结：
+    1.当前所有敏感信息资源，均在WEB-INF目录下存放，外界无法直接访问，只能通过controller
+    2.故，我们只需要对controller对应的请求映射地址进行拦截即可！
+    3.path地址，完全按照controller映射URL来的；
+    -->
+    <mvc:interceptors ><!--复数-->
+        <mvc:interceptor>
+            <!--配置拦截器范围,两个星：** 代表该目录下及所有子目录内容被拦截，一颗星：* 代表当前目录下的资源被拦截-->
+            <mvc:mapping path="/settings/**"/><!--第一个斜杠，标识该path不是一个整体，可进行灵活拼接，如果不添加标识该path是个整体，settings就是根目录-->
+            <mvc:mapping path="/workbench/**"/><!--这里是按照controller中的映射地址来书写范围-->
+
+            <!--配置排除拦截的资源【优先级高于拦截器：当前资源达到拦截范围，也达到了排除拦截，则进行拦截！】
+            1.登录页面
+            2.登录验证-->
+            <mvc:exclude-mapping path="/settings/qx/user/toLogin.do"/><!--这里无法省略/settings,因为省略后，无法找到这个controller映射方法方法！-->
+            <mvc:exclude-mapping path="/settings/qx/user/doLoin.do"/>
+            <bean class="com.sun.crm.settings.web.interceptor.myInterceptor"/><!--自定义拦截器-->
+        </mvc:interceptor>
+
+        <!--还可以配置拦截器！-->
+    </mvc:interceptors>
+
+
+
+    <!-- 配置文件上传解析器 id:必须是multipartResolver-->
+    <!--<bean id="multipartResolver" class="org.springframework.web.multipart.commons.CommonsMultipartResolver">
+        <property name="maxUploadSize" value="#{1024*1024*80}"/>
+        <property name="defaultEncoding" value="utf-8"/>
+    </bean>-->
+</beans>
